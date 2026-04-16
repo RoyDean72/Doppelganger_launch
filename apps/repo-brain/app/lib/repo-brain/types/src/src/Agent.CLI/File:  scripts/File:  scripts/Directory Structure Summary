@@ -1,0 +1,22 @@
+src/
+├── .env.template              # Master source code environment
+├── Agent.Runtime/
+│   ├── .env.runtime           # Runtime project overrides
+│   └── ...
+├── Agent.CLI/
+│   ├── .env.cli               # CLI tool environment
+│   └── ...
+├── Agent.WebAPI/
+│   ├── .env.web               # Web API host environment
+│   └── ...
+└── Agent.Learning/
+    └── ...                    # Uses parent .env
+
+tests/
+└── .env.test                  # Test isolation environment
+
+scripts/
+├── set-env.sh                 # Environment switcher
+└── validate-env.sh            # Configuration validator
+
+.env                           # Active environment (gitignored)
