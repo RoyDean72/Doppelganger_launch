@@ -1,0 +1,35 @@
+
+**Where this goes:** `docs/setup-guide.md`
+
+---
+
+## Summary: What Goes Where
+
+| File Path | Purpose |
+|-----------|---------|
+| `apps/repo-brain/app/lib/repo-brain/types/index.ts` | Data shapes (TypeScript interfaces) |
+| `apps/repo-brain/app/lib/repo-brain/adapters/mistral.ts` | Talks to Mistral API |
+| `apps/repo-brain/app/lib/repo-brain/adapters/openai.ts` | Placeholder for OpenAI |
+| `apps/repo-brain/app/lib/repo-brain/adapters/google-a2a.ts` | Jim's integration point |
+| `apps/repo-brain/app/lib/repo-brain/adapters/anthropic.ts` | Reserved for Claude |
+| `apps/repo-brain/app/lib/repo-brain/gem-router.ts` | Traffic controller |
+| `apps/repo-brain/app/api/agents/nexus/route.ts` | Front door API endpoint |
+| `apps/repo-brain/.env.local` | Secrets (never commit) |
+| `apps/repo-brain/package.json` | Dependencies list |
+| `apps/repo-brain/next.config.js` | Next.js settings |
+| `apps/repo-brain/tsconfig.json` | TypeScript settings |
+| `docs/setup-guide.md` | Instructions for you and Jim |
+
+---
+
+## Next Steps
+
+1. **Create all these files** in the folder structure
+2. **Get Mistral API key** from console.mistral.ai
+3. **Create agents in Mistral UI** and copy their IDs
+4. **Fill in .env.local**
+5. **Run locally** with `npm run dev`
+6. **Test with curl**
+7. **Deploy to Vercel**
+
+Want me to generate any specific file content, or walk through the Mistral Agent Builder UI setup next?
