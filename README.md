@@ -487,7 +487,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
 License
 
-[MIT](LICENSE) © 2026 Your Organization
+[MIT](LICENSE) © 2026 Willowdean72
 
 References
 
