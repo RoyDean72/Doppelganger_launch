@@ -1,0 +1,348 @@
+
+---
+
+## Quick Start
+
+### 1. Initialize Development Environment
+
+```bash
+# Clone repository
+git clone <repo-url>
+cd dotnet-self-learning-architect
+
+# Run setup script
+source scripts/set-env.sh development
+
+# Validate configuration
+./scripts/validate-env.sh
+# Copy template
+cp .env.template .env
+
+2. configure secrets 
+
+# Edit with your values
+code .env
+
+# Or use CLI
+./scripts/configure-secrets.sh --interactive
+
+3. verify setup 
+# Check agent status
+dotnet run --project src/Agent.CLI -- status
+
+# Run validatio
+dotnet run --project src/Agent.CLI -- validate-env
+
+4Environment Hierarchy
+1. Repository Root ( .env.template )
+Purpose: Master template with all possible variables
+When to edit: Adding new global configuration options
+Location: Repository root
+Key sections:
+ 
+Azure cloud credentials
+ 
+GitHub integration
+ 
+Model provider API keys
+ 
+Feature flags
+2. Source Code ( src/.env.template )
+Purpose: Runtime engine configuration
+When to edit: Changing agent behavior, timeouts, threading
+Location:  src/.env.template 
+Key sections:
+ 
+Function execution timeouts
+ 
+Subagent orchestration limits
+ 
+State management (SQLite/Memory/PostgreSQL)
+ 
+Telemetry and observability
+3. Project-Specific ( src/Agent.*/.env.* )
+Purpose: Component-specific overrides
+When to edit: Tuning individual services
+Location: Each project directory
+Project	File	Purpose	
+Agent.Runtime	`.env.runtime`	Core execution engine	
+Agent.CLI	`.env.cli`	Interactive command-line tool	
+Agent.WebAPI	`.env.web`	ASP.NET Core hosting	
+Agent.Tests	`tests/.env.test`	Test isolation	
+
+4. Docker ( docker/.env.* )
+Purpose: Container runtime configuration
+When to edit: Deploying with Docker Compose
+Location:  docker/  directory
+File	Purpose	
+`.env.docker`	Container agent runtime	
+`.env.docker-compose`	Supporting services (Redis, PostgreSQL, monitoring)	
+
+5. Infrastructure ( infra/terraform/.env.terraform )
+Purpose: Infrastructure as Code variables
+When to edit: Provisioning Azure resources
+Location:  infra/terraform/ 
+Key sections:
+ 
+Terraform backend configuration
+ 
+Azure resource naming
+ 
+Scaling and SKU settings
+ 
+Network configuration
+Core Variables
+Required Variables (All Environments)
+
+Variable	Description	Example	
+`AGENT_RUNTIME_VERSION`	Semver of agent	`1.0.0`	
+`AGENT_ENVIRONMENT`	Deployment target	`Development`, `Staging`, `Production`	
+`AZURE_TENANT_ID`	Azure AD tenant GUID	`12345678-...`	
+`AZURE_SUBSCRIPTION_ID`	Azure subscription GUID	`87654321-...`	
+`AZURE_CLIENT_ID`	Service principal app ID	`abcdef12-...`	
+`AZURE_CLIENT_SECRET`	Service principal secret	`***`	
+`GITHUB_TOKEN`	GitHub PAT with repo scope	`ghp_...`	
+`OPENAI_API_KEY`	For GPT-5.3-Codex	`sk-...`	
+`ANTHROPIC_API_KEY`	For Claude models	`sk-ant-...`	
+
+Critical Security Variables
+
+Variable	Risk if Exposed	Rotation Frequency	
+`AZURE_CLIENT_SECRET`	Cloud resource access	90 days	
+`GITHUB_TOKEN`	Repository access	90 days	
+`OPENAI_API_KEY`	Model API billing	On compromise	
+`ANTHROPIC_API_KEY`	Model API billing	On compromise	
+
+Environment-Specific Guides
+Local Development
+Files:  .env ,  src/Agent.Runtime/.env.runtime 
+
+# Fast feedback loop
+AGENT_ENVIRONMENT=Development
+LOG_LEVEL=Debug
+STATE_STORAGE_TYPE=sqlite
+MOCK_MODEL_PROVIDERS=false
+
+# Short timeouts for rapid iteration
+FUNCTION_TIMEOUT_SPAWN_SUBAGENT=60
+ORCHESTRATION_PHASE_TIMEOUT_MINUTES=10
+ 
+bash 
+
+# Fast feedback loop
+AGENT_ENVIRONMENT=Development
+LOG_LEVEL=Debug
+STATE_S
+TORAGE_TYPE=sqlite
+MOCK_MODEL_PROVIDERS=false
+
+# Short timeouts for rapid iteration
+FUNCTION_TIMEOUT_SPAWN_SUBAGENT=60
+ORCHESTRATION_PHASE_TIMEOUT_MINUTES=10
+
+Key features:
+ 
+SQLite state database (file or in-memory)
+ 
+Debug-level logging
+ 
+Hot reload disabled (use  dotnet watch )
+ 
+Local model API calls
+
+Testing
+
+Files:  tests/.env.test 
+
+bash 
+
+# Complete isolation
+AGENT_ENVIRONMENT=Testing
+MOCK_MODEL_PROVIDERS=true
+MOCK_AZURE_SERVICES=true
+STATE_STORAGE_TYPE=inmemory
+
+# Fast execution
+AGENT_WORKER_THREADS=2
+FUNCTION_TIMEOUT_ANALYZE_REQUIREMENTS=5
+
+Key features:
+ 
+All external services mocked
+ 
+In-memory state (no persistence)
+ 
+Parallel test execution
+ 
+Coverage reporting enabled
+Docker (Local)
+Files:  docker/.env.docker ,  docker/.env.docker-compose 
+
+bash
+
+# Production-like locally
+COMPOSE_PROJECT_NAME=agent-local
+AGENT_ENVIRONMENT=Container
+
+# With observability stack
+REDIS_ENABLED=true
+JAEGER_ENABLED=true
+PROMETHEUS_ENABLED=true
+GRAFANA_ENABLED=true
+
+# Production-like locally
+COMPOSE_PROJECT_NAME=agent-local
+AGENT_ENVIRONMENT=Container
+
+# With observability stack
+REDIS_ENABLED=true
+JAEGER_ENABLED=true
+PROMETHEUS_ENABLED=true
+GRAFANA_ENABLED=true
+start command 
+
+bash
+
+cd docker
+docker-compose --env-file .env.docker-compose up -d
+
+Staging (Azure)
+Files:  infra/terraform/.env.terraform  (workspace:  staging )
+bash 
+DEPLOYMENT_ENVIRONMENT=staging
+DEPLOYMENT_LOCATION=eastus2
+
+# Managed identity (no secrets in config)
+TF_VAR_enable_managed_identity=true
+TF_VAR_app_service_sku_tier=Standard
+TF_VAR_app_service_sku_size=S1
+Deploy command:
+bash
+cd infra/terraform
+terraform workspace select staging
+terraform apply -var-file=environments/staging.tfvars
+
+Production (Azure)
+Files:  infra/terraform/.env.terraform  (workspace:  production )
+start 
+Bosch 
+DEPLOYMENT_ENVIRONMENT=production
+DEPLOYMENT_LOCATION=westus2
+
+# High availability
+TF_VAR_app_service_sku_tier=PremiumV3
+TF_VAR_app_service_sku_size=P2V3
+TF_VAR_app_service_min_instances=2
+TF_VAR_app_service_max_instances=10
+
+# Security
+TF_VAR_vnet_enabled=true
+TF_VAR_private_endpoint_enabled=true
+TF_VAR_enable_waf=true
+TF_VAR_waf_mode=Prevention
+
+Secrets Management
+Local Development: Azure Key Vault (Recommended)
+
+Bosch 
+# Store in Key Vault
+az keyvault secret set --vault-name agent-dev-kv \
+  --name AzureClientSecret \
+  --value $AZURE_CLIENT_SECRET
+
+# Reference in .env
+AZURE_CLIENT_SECRET=@https://agent-dev-kv.vault.azure.net/secrets/AzureClientSecret
+
+CI/CD: GitHub Actions Secrets
+Bosch 
+# .github/workflows/deploy.yml
+- name: Configure Environment
+  run: |
+    echo "AZURE_CLIENT_ID=${{ secrets.AZURE_CLIENT_ID }}" >> $GITHUB_ENV
+    echo "AZURE_CLIENT_SECRET=${{ secrets.AZURE_CLIENT_SECRET }}" >> $GITHUB_ENV
+Production: Managed Identity
+bash 
+# No secrets in environment
+AZURE_CLIENT_ID=@Microsoft.KeyVault(SecretUri=https://...)
+
+# Enable managed identity on App Service
+az webapp identity assign --name agent-prod-api --resource-group agent-prod-rg
+
+Validation
+Pre-Flight Checks
+bash
+# Validate environment file syntax
+./scripts/validate-env.sh
+
+# Check required variables
+./scripts/check-required-vars.sh
+
+# Validate Azure credentials
+az account show
+
+# Test model API connectivity
+./scripts/test-model-apis.sh
+
+Runtime Validation
+bash 
+# Via CLI
+agent-cli validate-config --env-file .env
+
+# Via API
+curl http://localhost:8080/health/config
+
+# Response
+{
+  "valid": true,
+  "warnings": 2,
+  "errors": 0,
+  "missingOptional": ["REDIS_PASSWORD"],
+  "deprecatedVars": ["OLD_FEATURE_FLAG"]
+}
+Troubleshooting
+Common Issues
+Symptom	Cause	Solution	
+`AGENT_RUNTIME_VERSION not set`	Missing .env	`cp .env.template .env`	
+Model timeouts	Low timeout values	Increase `FUNCTION_TIMEOUT_*`	
+SQLite locked	Concurrent access	Use `STATE_STORAGE_TYPE=postgresql`	
+Permission denied	Wrong Azure credentials	Run `az login --service-principal`	
+Subagent failures	Network isolation	Check `AGENT_MAX_CONCURRENT_TASKS`	
+
+Debug Commands
+bash
+# Dump effective configuration
+dotnet run --project src/Agent.CLI -- config dump --format json
+
+# Check variable resolution
+dotnet run --project src/Agent.CLI -- config get AGENT_WORKER_THREADS
+
+# Validate specific environment
+./scripts/validate-env.sh --environment staging --strict
+
+Getting Help
+ 
+Check logs:  tail -f logs/agent-runtime.log 
+ 
+Enable debug:  LOG_LEVEL=Debug 
+ 
+Open issue: Include sanitized  config dump  output
+Reference
+ 
+Azure Environment Variables
+ 
+Terraform Environment Variables
+ 
+Docker Compose Environment
+ 
+DotNet Configuration
+
+---
+
+## Summary File Structure
+
+.env.template # Root template (README reference) src/ ├── .env.template # Source code master config ├── Agent.Runtime/.env.runtime # Runtime overrides ├── Agent.CLI/.env.cli # CLI tool config └── Agent.WebAPI/.env.web # Web API config
+tests/.env.test # Test isolation
+docker/ ├── .env.docker # Container runtime └── .env.docker-compose # Compose services
+infra/terraform/ └── .env.terraform # IaC variables
+docs/ └── ENVIRONMENT.md # This comprehensive guide
+scripts/ ├── set-env.sh # Environment switcher └── validate-env.sh # Config validator
